@@ -12,6 +12,15 @@ def offset_min_sum(v2c, offset=0.625):
     return ans
 
 
+def scaled_min_sum(v2c, coef=0.9375):
+    assert len(v2c.shape) == 2
+    circ_ind = circulant(np.arange(v2c.shape[-1])).T[1:]
+    tmp1 = v2c[:, circ_ind]
+    tmp2 = np.prod(np.sign(tmp1), axis=1)
+    ans = np.min(np.abs(tmp1), axis=1) * tmp2 * coef
+    return ans
+
+
 def generate_flooding(H):
     M, N = H.shape
     n_c = {} # given a node c, tell all neighbors (v) of c
@@ -46,7 +55,7 @@ def flooding(lv, edges, n_v, n_c, M, N, T, f):
             
             # compute v2c
             msg[:, ind_c, v] = sv[:, v].reshape([batch, -1]) - tmp_c2v
-        
+
         # msg storing v2c is now getting c2v
         for c in n_c:
             ind_v = n_c[c]
