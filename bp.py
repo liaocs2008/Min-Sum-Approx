@@ -18,7 +18,7 @@ parser.add_argument('--s_snr', default=1.0, type=float, help='SNR start value in
 parser.add_argument('--e_snr', default=6.0, type=float, help='SNR end value in dB')
 parser.add_argument('--step', default=1.0, type=float, help='SNR step in dB')
 parser.add_argument('--offset', default=0.3, type=float, help='Offset min sum value')
-parser.add_argument('--coef', default=0.9375, type=float, help='Scaled min sum value')
+parser.add_argument('--coefficient', default=0.9375, type=float, help='Scaled min sum value')
 parser.add_argument('--seed', type=int, default=2020, help='Random seed')
 
 
@@ -52,17 +52,17 @@ if __name__ == "__main__":
         while diff_fer < args.Y and num_batches * args.B < args.X:
             me = np.random.randint(2, size=[args.B, args.K])
             no = np.random.randn(args.B, args.N)
-            Lch, x = encode(G, me, SNR_in_db, no)
+            lv, x = encode(G, me, SNR_in_db, no)
             #print("llr", Lch.sum())
             if args.C == 'bp':
-                binary_d = decode(Lch, info, H.shape[1], args.N, args.T, f)
+                binary_d = decode(lv, info, H.shape[1], args.N, args.T, f)
             else:
-                binary_d = (Lch < 0).astype(np.int)
+                binary_d = (lv < 0).astype(int)
             res = binary_d != x  # (batch, N)
             
             num_batches += 1
-            diff_ber += res.sum()
-            diff_fer += np.sum( np.sum(res, axis=1) > 0 )
+            diff_ber += res.astype(int).sum()
+            diff_fer += np.sum((np.sum(res, axis=1) > 0).astype(int))
         
         # final output
         BER = diff_ber / (num_batches * args.B * args.N)
@@ -72,4 +72,4 @@ if __name__ == "__main__":
         if args.F == 'offset':
             print(args.F, args.offset, out)
         else:
-            print(args.F, args.coef, out)
+            print(args.F, args.coefficient, out)
